@@ -30,6 +30,7 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 import org.w3c.dom.Text;
 
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -136,6 +137,8 @@ public class MainActivity extends RosActivity {
         graph.getViewport().setMaxY(20000);
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
+        graph.getGridLabelRenderer().setHighlightZeroLines(false);
+
         graph.getViewport().setScrollable(true);
         graph.getViewport().setScalable(true);
 
@@ -156,7 +159,9 @@ public class MainActivity extends RosActivity {
         graph2.getViewport().setMaxX(10);
         graph2.getViewport().setMinY(-1);
         graph2.getViewport().setMaxY(1);
+        graph2.getGridLabelRenderer().setHighlightZeroLines(false);
         graph2.getLegendRenderer().setVisible(true);
+
         graph2.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
         //graph2.getViewport().setScrollable(true);
         //graph2.getViewport().setScalableY(true);
@@ -172,7 +177,7 @@ public class MainActivity extends RosActivity {
         DecimalFormat numberFormat = new DecimalFormat("#.00");
         double bsTime = (desiredAngle.get(p.min.index).getX() - desiredAngle.get(p.start.index).getX());
         double dsTime = (desiredAngle.get(p.hit.index).getX() - desiredAngle.get(p.min.index).getX());
-        ((TextView)findViewById(R.id.statisticsDesired)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime));
+        ((TextView)findViewById(R.id.statisticsDesired)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime) + "Angle: "+numberFormat.format(p.min.value)+" deg");
         //System.out.println("Values "+p.start.index+"/"+p.min.index+"/"+p.hit.index+"/"+p.max.index+"/");
 
     }
@@ -197,7 +202,6 @@ public class MainActivity extends RosActivity {
                 progressChangedValue = progress-30;
                 ((TextView)findViewById(R.id.angleText)).setText("Desired angle: "+progressChangedValue);
             }
-
             public void onStartTrackingTouch(SeekBar seekBar) {
                 // TODO Auto-generated method stub
             }
@@ -277,16 +281,21 @@ public class MainActivity extends RosActivity {
 
     public void analyzePutt(View view){
         PuttPhasePoints p = markPoints(currentAngle, 40);
+        double bsTime = 0;
+        double dsTime = 0;
         if (p.min.index > 0){
             //((TextView)findViewById(R.id.statisticsCurrent)).setText("Current: "+p.start.index+"/"+p.min.index+"/"+p.hit.index+"/"+p.max.index+"/");
-            double bsTime = (currentAngle.get(p.min.index).getX() - currentAngle.get(p.start.index).getX());
-            double dsTime = (currentAngle.get(p.hit.index).getX() - currentAngle.get(p.min.index).getX());
+            bsTime = (currentAngle.get(p.min.index).getX() - currentAngle.get(p.start.index).getX());
+            dsTime = (currentAngle.get(p.hit.index).getX() - currentAngle.get(p.min.index).getX());
             DecimalFormat numberFormat = new DecimalFormat("#.00");
-            ((TextView)findViewById(R.id.statisticsCurrent)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime));
-            logDataToFile(p, bsTime, dsTime);
+            ((TextView)findViewById(R.id.statisticsCurrent)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime)+" Putt Angle: "+numberFormat.format(p.min.value)+" deg");
+
         }else{
             ((TextView)findViewById(R.id.statisticsCurrent)).setText("Current: "+p.start.index+"/"+p.min.index+"/"+p.hit.index+"/"+p.max.index+"/");
         }
+        boolean writeToFile = ((CheckBox)findViewById(R.id.saveFile)).isChecked();
+        if (writeToFile)
+            logDataToFile(p, bsTime, dsTime);
 
     }
 
