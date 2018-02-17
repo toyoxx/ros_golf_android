@@ -42,7 +42,9 @@
                 android:text="Start Tempo"
                 tools:ignore="MissingConstraints"
                 tools:layout_editor_absoluteX="256dp"
-                tools:layout_editor_absoluteY="16dp" />
+                tools:layout_editor_absoluteY="16dp"
+                android:background="@android:color/black"
+                />
 
             <Button
                 android:id="@+id/buttonReset"
@@ -54,7 +56,8 @@
                 android:text="Reset Measurement"
                 tools:ignore="MissingConstraints"
                 tools:layout_editor_absoluteX="256dp"
-                tools:layout_editor_absoluteY="16dp" />
+                tools:layout_editor_absoluteY="16dp"
+                android:background="@android:color/black"/>
 
             <Button
                 android:id="@+id/buttonStop"
@@ -66,7 +69,8 @@
                 android:text="stopMeasurement"
                 tools:ignore="MissingConstraints"
                 tools:layout_editor_absoluteX="256dp"
-                tools:layout_editor_absoluteY="16dp" />
+                tools:layout_editor_absoluteY="16dp"
+                android:background="@android:color/black"/>
 
 
         </LinearLayout>
@@ -85,44 +89,19 @@
             android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/textView4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Gyro Bias " />
-
-            <EditText
-                android:id="@+id/biasText"
-                android:layout_width="30dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ems="10"
-                android:inputType="numberDecimal"
-                tools:text="Bias" />
-
-            <Button
-                android:id="@+id/button"
-                android:layout_width="20dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="setBias"
-                android:text="SET" />
-
-            <TextView
                 android:id="@+id/angleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Desired Angle" />
 
-            <SeekBar
-                android:id="@+id/angleBar"
-                style="@android:style/Widget.Material.Light.SeekBar"
+            <EditText
+                android:id="@+id/angleValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:max="30"
-                android:progress="0" />
+                android:ems="10"
+                android:inputType="numberSigned|numberDecimal" />
 
             <Button
                 android:id="@+id/button3"
@@ -130,7 +109,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="setAngle"
-                android:text="SET" />
+                android:text="SET"
+                android:background="@android:color/black"
+                />
 
         </LinearLayout>
         <Space
@@ -171,7 +152,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="analyzePutt"
-                android:text="Analyze" />
+                android:text="Analyze"
+                android:background="@android:color/black"
+                />
 
             <Button
                 android:id="@+id/button4"
@@ -179,7 +162,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:onClick="setEngaged"
-                android:text="Engage Feedback" />
+                android:text="Engage Feedback"
+                android:background="@android:color/black"
+                />
         </LinearLayout>
 
         <TextView

@@ -1,12 +1,7 @@
 package jp.ac.tohoku.mech.srd.golftraining;
 
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -28,14 +23,12 @@ import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
-import org.w3c.dom.Text;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.hardware.Camera;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -46,14 +39,10 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Vector;
-
-import sensor_msgs.Imu;
 /*import com.google.code.microlog4android.Level;
 import com.google.code.microlog4android.LoggerFactory;
 import com.google.code.microlog4android.appender.FileAppender;
@@ -76,7 +65,7 @@ public class MainActivity extends RosActivity {
     private LineGraphSeries<DataPoint> mSeries2;
     private LineGraphSeries<DataPoint> mSeries3;
 
-    private Vector<DataPoint> desiredAcc, desiredAngle, currentAcc, currentAngle;
+    private Vector<DataPoint> desiredPuttFaceAngle, desiredPuttShaftAngle, currentPuttFaceAngle, currentPuttShaftAngle;
 
     double offsetTime = -1;
 
@@ -99,18 +88,18 @@ public class MainActivity extends RosActivity {
 
 
     public void setupDataSeries(){
-        desiredAcc = new Vector<DataPoint>();
-        desiredAngle = new Vector<DataPoint>();
-        currentAcc = new Vector<DataPoint>();
-        currentAngle = new Vector<DataPoint>();
+        desiredPuttFaceAngle = new Vector<DataPoint>();
+        desiredPuttShaftAngle = new Vector<DataPoint>();
+        currentPuttFaceAngle = new Vector<DataPoint>();
+        currentPuttShaftAngle = new Vector<DataPoint>();
 
         graph = (GraphView) findViewById(R.id.chart);
-        readProcessedFile("Anthonny4mTrimmed.csv", desiredAngle, desiredAcc);
-        LineGraphSeries<DataPoint> acc = vectorToDataPoint(desiredAcc);
-        LineGraphSeries<DataPoint> gyro = vectorToDataPoint(desiredAngle);
+        readProcessedFile("rpy4mMod.csv", desiredPuttShaftAngle, desiredPuttFaceAngle);
+        LineGraphSeries<DataPoint> acc = vectorToDataPoint(desiredPuttFaceAngle);
+        LineGraphSeries<DataPoint> gyro = vectorToDataPoint(desiredPuttShaftAngle);
 
 
-        acc.setTitle("Acceleration in Y");
+        acc.setTitle("Putter Face Angle alpha");
         acc.setColor(Color.BLUE);
         acc.setDrawDataPoints(true);
         acc.setDataPointsRadius(1);
@@ -133,8 +122,8 @@ public class MainActivity extends RosActivity {
         graph.getSecondScale().setMinY(-50);
         graph.getSecondScale().setMaxY(50);
         graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(-20000);
-        graph.getViewport().setMaxY(20000);
+        graph.getViewport().setMinY(-50);
+        graph.getViewport().setMaxY(50);
         graph.getLegendRenderer().setVisible(true);
         graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
         graph.getGridLabelRenderer().setHighlightZeroLines(false);
@@ -145,10 +134,16 @@ public class MainActivity extends RosActivity {
         graph2 = (GraphView) findViewById(R.id.chart2);
         mSeries2 = new LineGraphSeries<>();
         mSeries2.setColor(Color.BLUE);
-        mSeries2.setTitle("Acceleration in Y");
+        mSeries2.setTitle("Putter Face Angle alpha");
+        mSeries2.setDataPointsRadius(1);
+        mSeries2.setThickness(3);
+        mSeries2.setDrawAsPath(true);
         mSeries3 = new LineGraphSeries<>();
         mSeries3.setColor(Color.RED);
         mSeries3.setTitle("Putter angle Theta");
+        mSeries3.setDataPointsRadius(1);
+        mSeries3.setThickness(3);
+        mSeries3.setDrawAsPath(true);
         graph2.addSeries(mSeries2);
         graph2.getSecondScale().addSeries(mSeries3);
         graph2.getSecondScale().setMinY(-50);
@@ -157,12 +152,12 @@ public class MainActivity extends RosActivity {
         graph2.getViewport().setYAxisBoundsManual(true);
         graph2.getViewport().setMinX(0);
         graph2.getViewport().setMaxX(10);
-        graph2.getViewport().setMinY(-1);
-        graph2.getViewport().setMaxY(1);
+        graph2.getViewport().setMinY(-50);
+        graph2.getViewport().setMaxY(50);
         graph2.getGridLabelRenderer().setHighlightZeroLines(false);
         graph2.getLegendRenderer().setVisible(true);
-
         graph2.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.BOTTOM);
+
         //graph2.getViewport().setScrollable(true);
         //graph2.getViewport().setScalableY(true);
 
@@ -173,10 +168,10 @@ public class MainActivity extends RosActivity {
         gyro.setCustomPaint(paint);*/
 
 
-        PuttPhasePoints p = markPoints(desiredAngle, 40);
+        PuttPhasePoints p = markPoints(desiredPuttShaftAngle, 40);
         DecimalFormat numberFormat = new DecimalFormat("#.00");
-        double bsTime = (desiredAngle.get(p.min.index).getX() - desiredAngle.get(p.start.index).getX());
-        double dsTime = (desiredAngle.get(p.hit.index).getX() - desiredAngle.get(p.min.index).getX());
+        double bsTime = (desiredPuttShaftAngle.get(p.min.index).getX() - desiredPuttShaftAngle.get(p.start.index).getX());
+        double dsTime = (desiredPuttShaftAngle.get(p.hit.index).getX() - desiredPuttShaftAngle.get(p.min.index).getX());
         ((TextView)findViewById(R.id.statisticsDesired)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime) + "Angle: "+numberFormat.format(p.min.value)+" deg");
         //System.out.println("Values "+p.start.index+"/"+p.min.index+"/"+p.hit.index+"/"+p.max.index+"/");
 
@@ -194,22 +189,7 @@ public class MainActivity extends RosActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         setupDataSeries();
-        SeekBar customSeekBar = (SeekBar)findViewById(R.id.angleBar);
-        customSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int progressChangedValue = 0;
 
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                progressChangedValue = progress-30;
-                ((TextView)findViewById(R.id.angleText)).setText("Desired angle: "+progressChangedValue);
-            }
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // TODO Auto-generated method stub
-            }
-
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                ((TextView)findViewById(R.id.angleText)).setText("Desired angle: "+progressChangedValue);
-            }
-        });
 
 
     }
@@ -240,8 +220,8 @@ public class MainActivity extends RosActivity {
         graph2.getViewport().setScrollable(false);
         graph2.getViewport().setScalable(false);
         mSeries3.setOnDataPointTapListener(null);
-        currentAcc.clear();
-        currentAngle.clear();
+        currentPuttFaceAngle.clear();
+        currentPuttShaftAngle.clear();
         ((TextView)findViewById(R.id.statisticsCurrent)).setText("Current: ");
     }
 
@@ -257,22 +237,11 @@ public class MainActivity extends RosActivity {
         });
     }
 
-    public void setBias(View view){
-        EditText t = (EditText)findViewById(R.id.biasText);
-        try{
-            double b = Float.parseFloat(t.getText().toString());
-            golfTalker.setGyroBias(b);
-        }catch(NumberFormatException e){
-            Toast.makeText(nodeMainExecutorService, "Invalid number! Review value", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     public void setAngle(View view){
-        SeekBar t = (SeekBar)findViewById(R.id.angleBar);
-
-        double b = t.getProgress()-30;
+        EditText t = (EditText) findViewById(R.id.angleValue);
+        ((TextView)findViewById(R.id.angleText)).setText("Desired angle: "+Double.valueOf(t.getText().toString()));
+        double b = Double.valueOf(t.getText().toString());
         golfTalker.setDesiredAngle(b);
-
     }
 
     public void setEngaged(View view){
@@ -280,13 +249,13 @@ public class MainActivity extends RosActivity {
     }
 
     public void analyzePutt(View view){
-        PuttPhasePoints p = markPoints(currentAngle, 40);
+        PuttPhasePoints p = markPoints(currentPuttShaftAngle, 40);
         double bsTime = 0;
         double dsTime = 0;
         if (p.min.index > 0){
             //((TextView)findViewById(R.id.statisticsCurrent)).setText("Current: "+p.start.index+"/"+p.min.index+"/"+p.hit.index+"/"+p.max.index+"/");
-            bsTime = (currentAngle.get(p.min.index).getX() - currentAngle.get(p.start.index).getX());
-            dsTime = (currentAngle.get(p.hit.index).getX() - currentAngle.get(p.min.index).getX());
+            bsTime = (currentPuttShaftAngle.get(p.min.index).getX() - currentPuttShaftAngle.get(p.start.index).getX());
+            dsTime = (currentPuttShaftAngle.get(p.hit.index).getX() - currentPuttShaftAngle.get(p.min.index).getX());
             DecimalFormat numberFormat = new DecimalFormat("#.00");
             ((TextView)findViewById(R.id.statisticsCurrent)).setText("Backswing time "+ numberFormat.format(bsTime *1000)+ " Downswing time "+ numberFormat.format(dsTime*1000) + " Tempo ratio : 1:"+numberFormat.format(bsTime/dsTime)+" Putt Angle: "+numberFormat.format(p.min.value)+" deg");
 
@@ -325,11 +294,11 @@ public class MainActivity extends RosActivity {
             writer.write("%"+pts.start.index+","+pts.min.index+","+pts.hit.index+","+pts.max.index+"\n");
             writer.write("%BS Time, DS Time, ratio\n");
             writer.write("%"+bst+","+dst+","+(bst/dst)+"\n");
-            writer.write("Desired Angle "+golfTalker.currentAngle +"/Current angle"+currentAngle.get(pts.min.index).getY());
+            writer.write("Desired Angle "+golfTalker.curPuttShaftAngle +"/Current angle"+ currentPuttShaftAngle.get(pts.min.index).getY());
 
-            for (int i = 0; i< currentAngle.size(); i++)
+            for (int i = 0; i< currentPuttShaftAngle.size(); i++)
             {
-                writer.write(currentAngle.get(i).getX()+","+currentAngle.get(i).getY()+","+currentAcc.get(i).getY()+"\n");
+                writer.write(currentPuttShaftAngle.get(i).getX()+","+ currentPuttShaftAngle.get(i).getY()+","+ currentPuttFaceAngle.get(i).getY()+"\n");
             }
             writer.close();
         } catch (IOException e) {
@@ -483,18 +452,18 @@ public class MainActivity extends RosActivity {
         return points;
     }
 
-    public synchronized void addPointToSeries(double x1, double y1, double x2, double y2){
-        synchronized (mSeries2){
-            mSeries2.appendData(new DataPoint(x1, y1),  true, 60000);
-        }
-        synchronized (mSeries3){
-            mSeries3.appendData(new DataPoint(x2, y2),  true, 60000);
-        }
+    public void addPointToSeries(double x1, double y1, double x2, double y2){
+            synchronized (mSeries2) {
+                mSeries2.appendData(new DataPoint(x1, y1), true, 12000);
+            }
+            synchronized (mSeries3) {
+                mSeries3.appendData(new DataPoint(x2, y2), true, 12000);
+            }
     }
 
     public void addPointToVectors(double x1, double y1, double x2, double y2){
-        currentAcc.add(new DataPoint(x1, y1));
-        currentAngle.add(new DataPoint(x2, y2));
+        currentPuttFaceAngle.add(new DataPoint(x1, y1));
+        currentPuttShaftAngle.add(new DataPoint(x2, y2));
 
     }
 
